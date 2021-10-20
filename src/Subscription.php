@@ -6,7 +6,7 @@ use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Jenssegers\Mongodb\Eloquent\Model;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use Laravel\Cashier\Concerns\AllowsCoupons;
@@ -119,7 +119,7 @@ class Subscription extends Model
      */
     public function hasSinglePrice()
     {
-        return ! $this->hasMultiplePrices();
+        return !$this->hasMultiplePrices();
     }
 
     /**
@@ -227,7 +227,7 @@ class Subscription extends Model
         return (is_null($this->ends_at) || $this->onGracePeriod()) &&
             $this->stripe_status !== StripeSubscription::STATUS_INCOMPLETE &&
             $this->stripe_status !== StripeSubscription::STATUS_INCOMPLETE_EXPIRED &&
-            (! Cashier::$deactivatePastDue || $this->stripe_status !== StripeSubscription::STATUS_PAST_DUE) &&
+            (!Cashier::$deactivatePastDue || $this->stripe_status !== StripeSubscription::STATUS_PAST_DUE) &&
             $this->stripe_status !== StripeSubscription::STATUS_UNPAID;
     }
 
@@ -274,7 +274,7 @@ class Subscription extends Model
      */
     public function recurring()
     {
-        return ! $this->onTrial() && ! $this->cancelled();
+        return !$this->onTrial() && !$this->cancelled();
     }
 
     /**
@@ -295,7 +295,7 @@ class Subscription extends Model
      */
     public function cancelled()
     {
-        return ! is_null($this->ends_at);
+        return !is_null($this->ends_at);
     }
 
     /**
@@ -327,7 +327,7 @@ class Subscription extends Model
      */
     public function ended()
     {
-        return $this->cancelled() && ! $this->onGracePeriod();
+        return $this->cancelled() && !$this->onGracePeriod();
     }
 
     /**
@@ -524,7 +524,7 @@ class Subscription extends Model
      */
     public function reportUsage($quantity = 1, $timestamp = null, $price = null)
     {
-        if (! $price) {
+        if (!$price) {
             $this->guardAgainstMultiplePrices();
         }
 
@@ -553,7 +553,7 @@ class Subscription extends Model
      */
     public function usageRecords(array $options = [], $price = null)
     {
-        if (! $price) {
+        if (!$price) {
             $this->guardAgainstMultiplePrices();
         }
 
@@ -634,7 +634,7 @@ class Subscription extends Model
      */
     public function extendTrial(CarbonInterface $date)
     {
-        if (! $date->isFuture()) {
+        if (!$date->isFuture()) {
             throw new InvalidArgumentException("Extending a subscription's trial requires a date in the future.");
         }
 
@@ -672,7 +672,8 @@ class Subscription extends Model
         );
 
         $stripeSubscription = $this->owner->stripe()->subscriptions->update(
-            $this->stripe_id, $this->getSwapOptions($items, $options)
+            $this->stripe_id,
+            $this->getSwapOptions($items, $options)
         );
 
         /** @var \Stripe\SubscriptionItem $firstItem */
@@ -746,11 +747,11 @@ class Subscription extends Model
                 'tax_rates' => $this->getPriceTaxRatesForPayload($price),
             ];
 
-            if (! isset($options['price_data'])) {
+            if (!isset($options['price_data'])) {
                 $payload['price'] = $price;
             }
 
-            if ($isSinglePriceSwap && ! is_null($this->quantity)) {
+            if ($isSinglePriceSwap && !is_null($this->quantity)) {
                 $payload['quantity'] = $this->quantity;
             }
 
@@ -770,7 +771,7 @@ class Subscription extends Model
         foreach ($this->asStripeSubscription()->items->data as $stripeSubscriptionItem) {
             $price = $stripeSubscriptionItem->price;
 
-            if (! $item = $items->get($price->id, [])) {
+            if (!$item = $items->get($price->id, [])) {
                 $item['deleted'] = true;
 
                 if ($price->recurring->usage_type == 'metered') {
@@ -807,13 +808,13 @@ class Subscription extends Model
 
         $payload = array_merge($payload, $options);
 
-        if (! is_null($this->billingCycleAnchor)) {
+        if (!is_null($this->billingCycleAnchor)) {
             $payload['billing_cycle_anchor'] = $this->billingCycleAnchor;
         }
 
         $payload['trial_end'] = $this->onTrial()
-                        ? $this->trial_ends_at->getTimestamp()
-                        : 'now';
+            ? $this->trial_ends_at->getTimestamp()
+            : 'now';
 
         return $payload;
     }
@@ -1061,7 +1062,7 @@ class Subscription extends Model
      */
     public function resume()
     {
-        if (! $this->onGracePeriod()) {
+        if (!$this->onGracePeriod()) {
             throw new LogicException('Unable to resume subscription that is not within grace period.');
         }
 
@@ -1088,7 +1089,7 @@ class Subscription extends Model
      */
     public function pending()
     {
-        return ! is_null($this->asStripeSubscription()->pending_update);
+        return !is_null($this->asStripeSubscription()->pending_update);
     }
 
     /**
@@ -1186,7 +1187,8 @@ class Subscription extends Model
     public function invoices($includePending = false, $parameters = [])
     {
         return $this->owner->invoices(
-            $includePending, array_merge($parameters, ['subscription' => $this->stripe_id])
+            $includePending,
+            array_merge($parameters, ['subscription' => $this->stripe_id])
         );
     }
 
@@ -1299,7 +1301,8 @@ class Subscription extends Model
     public function updateStripeSubscription(array $options = [])
     {
         return $this->owner->stripe()->subscriptions->update(
-            $this->stripe_id, $options
+            $this->stripe_id,
+            $options
         );
     }
 
@@ -1312,7 +1315,8 @@ class Subscription extends Model
     public function asStripeSubscription(array $expand = [])
     {
         return $this->owner->stripe()->subscriptions->retrieve(
-            $this->stripe_id, ['expand' => $expand]
+            $this->stripe_id,
+            ['expand' => $expand]
         );
     }
 

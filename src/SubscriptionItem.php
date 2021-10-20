@@ -4,7 +4,7 @@ namespace Laravel\Cashier;
 
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Jenssegers\Mongodb\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Laravel\Cashier\Concerns\InteractsWithPaymentBehavior;
 use Laravel\Cashier\Concerns\Prorates;
@@ -216,7 +216,8 @@ class SubscriptionItem extends Model
     public function usageRecords($options = [])
     {
         return new Collection($this->subscription->owner->stripe()->subscriptionItems->allUsageRecordSummaries(
-            $this->stripe_id, $options
+            $this->stripe_id,
+            $options
         )->data);
     }
 
@@ -229,7 +230,8 @@ class SubscriptionItem extends Model
     public function updateStripeSubscriptionItem(array $options = [])
     {
         return $this->subscription->owner->stripe()->subscriptionItems->update(
-            $this->stripe_id, $options
+            $this->stripe_id,
+            $options
         );
     }
 
@@ -242,7 +244,8 @@ class SubscriptionItem extends Model
     public function asStripeSubscriptionItem(array $expand = [])
     {
         return $this->subscription->owner->stripe()->subscriptionItems->retrieve(
-            $this->stripe_id, ['expand' => $expand]
+            $this->stripe_id,
+            ['expand' => $expand]
         );
     }
 
